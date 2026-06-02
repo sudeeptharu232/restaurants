@@ -19,9 +19,9 @@ class DemoTenantSeeder extends Seeder
 
         if (!$tenant) {
             // Drop orphaned PostgreSQL database if it exists (terminate connections first)
-            $dbName = 'tenant' . 'sajilo';
-            \Illuminate\Support\Facades\DB::statement("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '{$dbName}'");
-            \Illuminate\Support\Facades\DB::statement("DROP DATABASE IF EXISTS \"{$dbName}\"");
+            // $dbName = 'tenant' . 'sajilo';
+            // \Illuminate\Support\Facades\DB::statement("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '{$dbName}'");
+            // \Illuminate\Support\Facades\DB::statement("DROP DATABASE IF EXISTS \"{$dbName}\"");
 
             $tenant = Tenant::create([
                 'id' => 'sajilo',
