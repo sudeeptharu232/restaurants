@@ -33,15 +33,22 @@ class MenuItemController extends Controller
             'super_admin' => ['*'],
             'owner' => ['*'],
             'manager' => [
-                'view_pos', 'manage_pos',
-                'view_inventory', 'manage_inventory',
-                'view_customers', 'manage_customers',
-                'view_products', 'manage_products',
-                'view_menu', 'manage_menu',
-                'view_tables', 'manage_tables'
+                'view_pos',
+                'manage_pos',
+                'view_inventory',
+                'manage_inventory',
+                'view_customers',
+                'manage_customers',
+                'view_products',
+                'manage_products',
+                'view_menu',
+                'manage_menu',
+                'view_tables',
+                'manage_tables'
             ],
             'staff' => [
-                'view_pos', 'manage_pos',
+                'view_pos',
+                'manage_pos',
                 'view_customers',
                 'view_products',
                 'view_menu',
@@ -67,45 +74,45 @@ class MenuItemController extends Controller
     {
         $this->authorizePermission('view_menu');
         $cacheKey = 'menu_items_index_' . md5(json_encode([
-    'tenant_id' => tenant('id'),
-    'search' => $request->input('search'),
-    'category_id' => $request->input('category_id'),
-    'is_available' => $request->input('is_available'),
-    'show_deleted' => $request->boolean('show_deleted'),
-    'page' => $request->input('page', 1),
-]));
-$data = Cache::remember($cacheKey, 60, function () use ($request) {
+            'tenant_id' => tenant('id'),
+            'search' => $request->input('search'),
+            'category_id' => $request->input('category_id'),
+            'is_available' => $request->input('is_available'),
+            'show_deleted' => $request->boolean('show_deleted'),
+            'page' => $request->input('page', 1),
+        ]));
+        $data = Cache::remember($cacheKey, 60, function () use ($request) {
 
-        $query = MenuItem::with('category');
+            $query = MenuItem::with('category');
 
-        // Search by name
-        if ($request->has('search')) {
-            $search = $request->input('search');
-            $query->where('name', 'like', "%{$search}%");
-        }
+            // Search by name
+            if ($request->has('search')) {
+                $search = $request->input('search');
+                $query->where('name', 'like', "%{$search}%");
+            }
 
-        // Filter by category
-        if ($request->has('category_id')) {
-            $query->where('category_id', $request->input('category_id'));
-        }
+            // Filter by category
+            if ($request->has('category_id')) {
+                $query->where('category_id', $request->input('category_id'));
+            }
 
-        // Filter by availability
-        if ($request->has('is_available')) {
-            $query->where('is_available', $request->boolean('is_available'));
-        }
+            // Filter by availability
+            if ($request->has('is_available')) {
+                $query->where('is_available', $request->boolean('is_available'));
+            }
 
-        if ($request->boolean('show_deleted')) {
-            $query->withTrashed();
-        }
+            if ($request->boolean('show_deleted')) {
+                $query->withTrashed();
+            }
 
-        $menuItems = $query->simplePaginate(15);
+            $menuItems = $query->simplePaginate(1);
 
-        return $this->success(
-            MenuItemResource::collection($menuItems)->response()->getData(true),
-            'Menu items retrieved successfully'
-        );
-    });
-    return $this->success($data, 'Menu items retrieved successfully');
+            return $this->success(
+                MenuItemResource::collection($menuItems)->response()->getData(true),
+                'Menu items retrieved successfully'
+            );
+        });
+        return $this->success($data, 'Menu items retrieved successfully');
     }
 
     /**
