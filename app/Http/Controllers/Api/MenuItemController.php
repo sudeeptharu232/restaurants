@@ -83,7 +83,14 @@ class MenuItemController extends Controller
         ]));
         $data = Cache::remember($cacheKey, 60, function () use ($request) {
 
-            $query = MenuItem::with('category');
+            $query = MenuItem::select([
+                'id',
+                'category_id',
+                'name',
+                'description',
+                'price',
+                'is_available',
+            ])->with('category:id,name,slug,type,is_active');
 
             // Search by name
             if ($request->has('search')) {
@@ -107,8 +114,7 @@ class MenuItemController extends Controller
 
             $menuItems = $query->simplePaginate(1);
 
-            return MenuItemResource::collection($menuItems)->response()->getData(true);
-;
+            return MenuItemResource::collection($menuItems)->response()->getData(true);;
         });
         return $this->success($data, 'Menu items retrieved successfully');
     }
