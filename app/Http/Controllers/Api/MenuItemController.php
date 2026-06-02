@@ -107,10 +107,8 @@ class MenuItemController extends Controller
 
             $menuItems = $query->simplePaginate(1);
 
-            return $this->success(
-                MenuItemResource::collection($menuItems)->response()->getData(true),
-                'Menu items retrieved successfully'
-            );
+            return MenuItemResource::collection($menuItems)->response()->getData(true);
+;
         });
         return $this->success($data, 'Menu items retrieved successfully');
     }
