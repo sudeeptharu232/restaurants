@@ -10,6 +10,7 @@ use App\Models\MenuItem;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class MenuItemController extends Controller
 {
@@ -65,6 +66,15 @@ class MenuItemController extends Controller
     public function index(Request $request): JsonResponse
     {
         $this->authorizePermission('view_menu');
+        $cacheKey = 'menu_items_index_' . md5(json_encode([
+    'tenant_id' => tenant('id'),
+    'search' => $request->input('search'),
+    'category_id' => $request->input('category_id'),
+    'is_available' => $request->input('is_available'),
+    'show_deleted' => $request->boolean('show_deleted'),
+    'page' => $request->input('page', 1),
+]));
+$data = Cache::remember($cacheKey, 60, function () use ($request) {
 
         $query = MenuItem::with('category');
 
@@ -94,6 +104,8 @@ class MenuItemController extends Controller
             MenuItemResource::collection($menuItems)->response()->getData(true),
             'Menu items retrieved successfully'
         );
+    });
+    return $this->success($data, 'Menu items retrieved successfully');
     }
 
     /**
