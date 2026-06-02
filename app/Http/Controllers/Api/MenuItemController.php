@@ -112,7 +112,7 @@ class MenuItemController extends Controller
                 $query->withTrashed();
             }
 
-            $menuItems = $query->simplePaginate(1);
+            $menuItems = $query->simplePaginate(5);
 
             return MenuItemResource::collection($menuItems)->response()->getData(true);;
         });

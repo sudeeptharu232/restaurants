@@ -10,7 +10,7 @@ use App\Models\RestaurantSpace;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Cache;
 class RestaurantSpaceController extends Controller
 {
     use ApiResponse;
@@ -32,15 +32,22 @@ class RestaurantSpaceController extends Controller
             'super_admin' => ['*'],
             'owner' => ['*'],
             'manager' => [
-                'view_pos', 'manage_pos',
-                'view_inventory', 'manage_inventory',
-                'view_customers', 'manage_customers',
-                'view_products', 'manage_products',
-                'view_menu', 'manage_menu',
-                'view_tables', 'manage_tables'
+                'view_pos',
+                'manage_pos',
+                'view_inventory',
+                'manage_inventory',
+                'view_customers',
+                'manage_customers',
+                'view_products',
+                'manage_products',
+                'view_menu',
+                'manage_menu',
+                'view_tables',
+                'manage_tables'
             ],
             'staff' => [
-                'view_pos', 'manage_pos',
+                'view_pos',
+                'manage_pos',
                 'view_customers',
                 'view_products',
                 'view_menu',
@@ -66,23 +73,35 @@ class RestaurantSpaceController extends Controller
     {
         $this->authorizePermission('view_tables');
 
-        $query = RestaurantSpace::query()->withCount('tables');
+        $cacheKey = 'restaurant_spaces_index_' . md5(json_encode([
+            'tenant_id' => tenant('id'),
+            'search' => $request->input('search'),
+            'is_active' => $request->input('is_active'),
+            'page' => $request->input('page', 1),
+        ]));
 
-        if ($request->has('search')) {
-            $search = $request->input('search');
-            $query->where('name', 'like', "%{$search}%");
-        }
+        $data = Cache::remember($cacheKey, 60, function () use ($request) {
 
-        if ($request->has('is_active')) {
-            $query->where('is_active', $request->boolean('is_active'));
-        }
+            $query = RestaurantSpace::query()->withCount('tables');
 
-        $spaces = $query->paginate(15);
+            if ($request->has('search')) {
+                $search = $request->input('search');
+                $query->where('name', 'like', "%{$search}%");
+            }
 
-        return $this->success(
-            RestaurantSpaceResource::collection($spaces)->response()->getData(true),
-            'Restaurant spaces retrieved successfully'
-        );
+            if ($request->has('is_active')) {
+                $query->where('is_active', $request->boolean('is_active'));
+            }
+
+            $spaces = $query->paginate(15);
+
+
+            return RestaurantSpaceResource::collection($spaces)
+                ->response()
+                ->getData(true);
+        });
+
+        return $this->success($data, 'Restaurant spaces retrieved successfully');
     }
 
     /**
